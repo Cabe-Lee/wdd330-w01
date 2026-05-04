@@ -5,7 +5,5 @@ web_modules
 node_modules
 dist
 .env
-package-lock.json
 .editorconfig
-.prettierrc
 .new

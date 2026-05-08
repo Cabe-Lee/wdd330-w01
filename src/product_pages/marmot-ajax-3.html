@@ -56,28 +56,29 @@
 
     <main class="divider">
       <section class="product-detail">
-        <h3>Marmot</h3>
+        <h3 id="productName">Marmot</h3>
 
-        <h2 class="divider">Ajax Tent - 3-Person, 3-Season</h2>
+        <h2 class="divider" id="productNameWithoutBrand">Ajax Tent - 3-Person, 3-Season</h2>
 
         <img
+          id="productImage"
           class="divider"
           src="../images/tents/marmot-ajax-tent-3-person-3-season-in-pale-pumpkin-terracotta~p~880rr_01~320.jpg"
           alt="Marmot Ajax tent"
         />
 
-        <p class="product-card__price">$199.99</p>
+        <p class="product-card__price" id="productFinalPrice">$199.99</p>
 
-        <p class="product__color">Pale Pumpkin/Terracotta</p>
+        <p class="product__color" id="productColorName">Pale Pumpkin/Terracotta</p>
 
-        <p class="product__description">
+        <p class="product__description" id="productDescriptionHtmlSimple">
           Get out and enjoy nature with Marmot&#39;s Ajax tent, featuring a
           smart design with durable, waterproof construction and two doors for
           easy access.
         </p>
 
         <div class="product-detail__add">
-          <button id="addToCart" data-id="880RR">Add to Cart</button>
+          <button id="addToCart" data-id="">Add to Cart</button>
         </div>
       </section>
     </main>

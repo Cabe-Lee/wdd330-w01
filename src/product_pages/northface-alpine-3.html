@@ -56,21 +56,22 @@
 
     <main class="divider">
       <section class="product-detail">
-        <h3>The North Face</h3>
+        <h3 id="productName">The North Face</h3>
 
-        <h2 class="divider">Alpine Guide Tent - 3-Person, 4-Season</h2>
+        <h2 class="divider" id="productNameWithoutBrand">Alpine Guide Tent - 3-Person, 4-Season</h2>
 
         <img
+          id="productImage"
           class="divider"
           src="../images/tents/the-north-face-alpine-guide-tent-3-person-4-season-in-canary-yellow-high-rise-grey~p~985pr_01~320.jpg"
           alt="Alpine Guide Tent - 3-Person, 4-Season"
         />
 
-        <p class="product-card__price">$349.99</p>
+        <p class="product-card__price" id="productFinalPrice">$349.99</p>
 
-        <p class="product__color">Canary Yellow/High Rise Grey</p>
+        <p class="product__color" id="productColorName">Canary Yellow/High Rise Grey</p>
 
-        <p class="product__description">
+        <p class="product__description" id="productDescriptionHtmlSimple">
           Be ready for any outdoor adventure in low elevations and high-alpine
           environments alike with the hybrid design of The North Face&#39;s
           Alpine Guide four-season tent. It is made from durable, waterproof
@@ -78,7 +79,7 @@
         </p>
 
         <div class="product-detail__add">
-          <button id="addToCart" data-id="985PR">Add to Cart</button>
+          <button id="addToCart" data-id="">Add to Cart</button>
         </div>
       </section>
     </main>

@@ -5,4 +5,5 @@ web_modules
 node_modules
 dist
 .env
-
+.editorconfig
+.new

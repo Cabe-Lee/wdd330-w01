@@ -4,6 +4,7 @@ import { setLocalStorage } from "./utils.mjs";
 let product = {};
 
 function renderProductDetails(product) {
+  document.title = `Sleep Outside | ${product.Name}`;
   document.querySelector("#productName").textContent = product.Name;
   document.querySelector("#productNameWithoutBrand").textContent =
     product.NameWithoutBrand;

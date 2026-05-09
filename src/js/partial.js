@@ -20,10 +20,6 @@ class Header extends HTMLElement {
               <img src="/images/noun_Tent_2517.svg" alt="tent image for logo">
               <a href="index.html"> Sleep<span class="highlight">Outside</span></a>
             </div>
-            <nav>
-              <a href="src/index.html">Home</a>
-              <a href="product_pages/index.html">Products</a>
-            </nav>
             <div class="cart">
               <a href="cart/index.html">
 

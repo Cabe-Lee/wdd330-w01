@@ -1,33 +1,29 @@
-import { findProductById } from "./productData.mjs";
-import { setLocalStorage } from "./utils.mjs";
+import { findProductById } from './productData.mjs';
+import { setLocalStorage } from './utils.mjs';
 
-let product = {};
+let data;
 
-function renderProductDetails(product) {
-  document.title = `Sleep Outside | ${product.Name}`;
-  document.querySelector("#productName").textContent = product.Name;
-  document.querySelector("#productNameWithoutBrand").textContent =
-    product.NameWithoutBrand;
-  document.querySelector("#productImage").src = product.Image;
-  document.querySelector("#productImage").alt = product.Name;
-  document.querySelector("#productFinalPrice").textContent =
-    `$${product.FinalPrice}`;
-  document.querySelector("#productColorName").textContent =
-    product.Colors[0].ColorName;
-  document.querySelector("#productDescriptionHtmlSimple").innerHTML =
-    product.DescriptionHtmlSimple;
-
-  document.querySelector("#addToCart").dataset.id = product.Id;
+async function productDetails(productId) {
+    data = await findProductById(productId);
+    renderProductDetails();
+    document.getElementById('addToCart').addEventListener('click', addToCart);
 }
 
-function addToCart() {
-  setLocalStorage("so-cart", product);
+async function addToCart(e) {
+    const product = findProductById(e.target.dataset.id);
+    setLocalStorage('so-cart', product);
 }
 
-export default async function productDetails(productId) {
-  product = await findProductById(productId);
-
-  renderProductDetails(product);
-
-  document.querySelector("#addToCart").addEventListener("click", addToCart);
+function renderProductDetails() {
+    document.title = `Sleep Outside | ${data.Name}`;
+    document.getElementById('productName').textContent = data.Brand.Name;
+    document.getElementById('productNameWithoutBrand').textContent = data.NameWithoutBrand;
+    const image = document.getElementById('productImage');
+    image.src = data.Image;
+    image.alt = data.Name;
+    document.getElementById('productFinalPrice').textContent = '$' + data.FinalPrice;
+    document.getElementById('productColorName').textContent = data.Colors[0].ColorName;
+    document.getElementById('productDescriptionHtmlSimple').innerHTML = data.DescriptionHtmlSimple;
 }
+
+export default productDetails;

@@ -1,20 +1,20 @@
 class Head extends HTMLElement {
-    connectedCallback() {
-        this.innerHTML = `
+  connectedCallback() {
+    this.innerHTML = `
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Products | Sleep Outside</title>
             <link rel="stylesheet" href="../css/style.css">
         </head>
-        `
-    }
-};
+        `;
+  }
+}
 customElements.define('site-head', Head);
 
 class Header extends HTMLElement {
-    connectedCallback() {
-        this.innerHTML = `
+  connectedCallback() {
+    this.innerHTML = `
         <header class="divider">
             <div class="logo">
               <img src="/images/noun_Tent_2517.svg" alt="tent image for logo">
@@ -37,16 +37,16 @@ class Header extends HTMLElement {
               </a>
             </div>
         </header>
-        `
-    }
-};
+        `;
+  }
+}
 customElements.define('site-header', Header);
 
 class Footer extends HTMLElement {
-    connectedCallback() {
-        this.innerHTML = `
+  connectedCallback() {
+    this.innerHTML = `
         <footer>&copy;NOT a real business</footer>
-        `
-    }
-};
+        `;
+  }
+}
 customElements.define('site-footer', Footer);

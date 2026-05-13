@@ -11,10 +11,9 @@ export default defineConfig([
   {
     files: ['**/*.{js,mjs,cjs}'],
     languageOptions: {
-      globals:
-      {
+      globals: {
         ...globals.browser,
-        __dirname: 'readonly'
+        __dirname: 'readonly',
       },
     },
   },

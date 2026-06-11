@@ -38,3 +38,28 @@ export function renderListWithTemplate(
   const html = list.map(templateFn).join('');
   parentElement.insertAdjacentHTML(position, html);
 }
+
+export function alertMessage(message, scroll = true) {
+  const main = document.querySelector('main');
+
+  if (!main) return;
+
+  const alert = document.createElement('div');
+  alert.classList.add('alert');
+  alert.innerHTML = `
+    <p>${message}</p>
+    <button type="button" class="alert-close" aria-label="Close alert">X</button>
+  `;
+
+  alert.addEventListener('click', function (event) {
+    if (event.target.classList.contains('alert-close')) {
+      main.removeChild(this);
+    }
+  });
+
+  main.prepend(alert);
+
+  if (scroll) {
+    window.scrollTo(0, 0);
+  }
+}

@@ -14,10 +14,10 @@ async function loadPartial(selector, filePath) {
 
     const html = await response.text();
     element.innerHTML = html;
-  } catch (error) {
-    console.error("Partial loading error:", error);
+  } catch {
+    element.innerHTML = '';
   }
 }
 
-loadPartial("#main-header", "/partials/header.html");
-loadPartial("#main-footer", "/partials/footer.html");
+loadPartial('#main-header', '/partials/header.html');
+loadPartial('#main-footer', '/partials/footer.html');

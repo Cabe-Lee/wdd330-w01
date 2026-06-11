@@ -1,17 +1,16 @@
-import CheckoutProcess from './checkoutProcess.mjs';
+import checkoutProcess from './checkoutProcess.mjs';
 
-const checkoutProcess = new CheckoutProcess('so-cart', '.checkout-form');
-checkoutProcess.init();
+const checkoutForm = document.querySelector('.checkout-form');
 
-document.querySelector('#checkoutSubmit').addEventListener('click', (event) => {
+checkoutProcess.init('so-cart', '.checkout-summary');
+
+checkoutForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const myForm = document.forms[0];
-  const chk_status = myForm.checkValidity();
+  const isValid = checkoutForm.checkValidity();
+  checkoutForm.reportValidity();
 
-  myForm.reportValidity();
-
-  if (chk_status) {
-    checkoutProcess.checkout();
+  if (isValid) {
+    checkoutProcess.checkout(checkoutForm);
   }
 });

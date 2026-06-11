@@ -31,70 +31,124 @@ function extractServerMessage(message) {
   return 'There was a problem with your order. Please check your information and try again.';
 }
 
-export default class CheckoutProcess {
-  constructor(key, formSelector) {
+function formDataToJSON(formElement) {
+  const formData = new FormData(formElement);
+  const convertedJSON = {};
+
+  formData.forEach((value, key) => {
+    convertedJSON[key] = value;
+  });
+
+  return convertedJSON;
+}
+
+function packageItems(items) {
+  const packagedItems = items.reduce((groupedItems, item) => {
+    const existingItem = groupedItems[item.Id];
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      groupedItems[item.Id] = {
+        id: item.Id,
+        name: item.Name,
+        price: Number(item.FinalPrice),
+        quantity: 1,
+      };
+    }
+
+    return groupedItems;
+  }, {});
+
+  return Object.values(packagedItems);
+}
+
+const checkoutProcess = {
+  key: '',
+  outputSelector: '',
+  list: [],
+  itemTotal: 0,
+  shipping: 0,
+  tax: 0,
+  orderTotal: 0,
+  init(key, outputSelector) {
     this.key = key;
-    this.form = document.querySelector(formSelector);
-    this.cartItems = getLocalStorage(this.key) || [];
-    this.shipping = this.cartItems.length > 0 ? 10 : 0;
-    this.taxRate = 0.06;
-  }
+    this.outputSelector = outputSelector;
+    this.list = getLocalStorage(key) || [];
+    this.form = document.querySelector('.checkout-form');
+    this.summaryElement = document.querySelector(outputSelector);
+    this.calculateItemSummary();
 
-  init() {
-    this.renderOrderSummary();
-  }
-
-  calculateSubtotal() {
-    return this.cartItems.reduce(
+    const zipInput = this.form?.elements.namedItem('zip');
+    if (zipInput) {
+      zipInput.addEventListener('blur', () => {
+        if (zipInput.checkValidity()) {
+          this.calculateOrdertotal();
+        }
+      });
+    }
+  },
+  calculateItemSummary() {
+    this.itemTotal = this.list.reduce(
       (total, item) => total + Number(item.FinalPrice || 0),
       0
     );
-  }
 
-  calculateTax() {
-    return this.calculateSubtotal() * this.taxRate;
-  }
-
+    this.summaryElement.querySelector('#itemCount').textContent = String(
+      this.list.length
+    );
+    this.summaryElement.querySelector('#subtotal').textContent = formatCurrency(
+      this.itemTotal
+    );
+    this.displayOrderTotals();
+  },
   calculateOrdertotal() {
-    return this.calculateSubtotal() + this.shipping + this.calculateTax();
-  }
+    const itemCount = this.list.length;
 
-  renderOrderSummary() {
-    document.getElementById('itemCount').textContent = String(this.cartItems.length);
-    document.getElementById('subtotal').textContent = formatCurrency(
-      this.calculateSubtotal()
-    );
-    document.getElementById('shipping').textContent = formatCurrency(this.shipping);
-    document.getElementById('tax').textContent = formatCurrency(this.calculateTax());
-    document.getElementById('orderTotal').textContent = formatCurrency(
-      this.calculateOrdertotal()
-    );
-  }
+    this.shipping = itemCount > 0 ? 10 + Math.max(0, itemCount - 1) * 2 : 0;
+    this.tax = this.itemTotal * 0.06;
+    this.orderTotal = this.itemTotal + this.shipping + this.tax;
 
-  packageItems() {
-    if (this.cartItems.length === 0) {
-      throw new Error('Your cart is empty. Add an item before checking out.');
+    this.displayOrderTotals();
+  },
+  displayOrderTotals() {
+    this.summaryElement.querySelector('#shipping').textContent = formatCurrency(
+      this.shipping
+    );
+    this.summaryElement.querySelector('#tax').textContent = formatCurrency(this.tax);
+    this.summaryElement.querySelector('#orderTotal').textContent = formatCurrency(
+      this.orderTotal || this.itemTotal
+    );
+  },
+  async checkout(form) {
+    if (this.list.length === 0) {
+      alertMessage('Your cart is empty. Add an item before checking out.');
+      return;
     }
 
-    const formData = new FormData(this.form);
-    const order = Object.fromEntries(formData.entries());
+    this.calculateOrdertotal();
 
-    return {
-      ...order,
-      items: this.cartItems,
+    const formData = formDataToJSON(form);
+    const order = {
       orderDate: new Date().toISOString(),
-      tax: this.calculateTax(),
+      fname: formData.fname,
+      lname: formData.lname,
+      street: formData.street,
+      city: formData.city,
+      state: formData.state,
+      zip: formData.zip,
+      cardNumber: formData.cardNumber,
+      expiration: formData.expiration,
+      code: formData.code,
+      items: packageItems(this.list),
+      orderTotal: this.orderTotal.toFixed(2),
       shipping: this.shipping,
-      orderTotal: this.calculateOrdertotal(),
+      tax: this.tax.toFixed(2),
     };
-  }
 
-  async checkout() {
     try {
-      const order = this.packageItems();
       await checkout(order);
-
-      localStorage.removeItem('so-cart');
+      localStorage.removeItem(this.key);
       window.location.href = '/checkout/success.html';
     } catch (err) {
       console.log(err);
@@ -105,5 +159,7 @@ export default class CheckoutProcess {
         alertMessage(err.message || 'Something went wrong. Please try again.');
       }
     }
-  }
-}
+  },
+};
+
+export default checkoutProcess;

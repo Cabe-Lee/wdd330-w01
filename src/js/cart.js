@@ -2,14 +2,19 @@ import { getLocalStorage } from './utils.mjs';
 
 function renderCartContents() {
   const cartItems = getLocalStorage('so-cart') || [];
+  const totalElement = document.getElementById('cartTotal');
 
   if (cartItems.length === 0) {
     document.querySelector('.product-list').innerHTML = '<li>Your cart is empty.</li>';
+    totalElement.textContent = '$0.00';
     return;
   }
 
   const htmlItems = cartItems.map((item) => cartItemTemplate(item));
   document.querySelector('.product-list').innerHTML = htmlItems.join('');
+  totalElement.textContent = `$${cartItems
+    .reduce((sum, item) => sum + Number(item.FinalPrice || 0), 0)
+    .toFixed(2)}`;
 }
 
 function cartItemTemplate(item) {

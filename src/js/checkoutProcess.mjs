@@ -18,16 +18,12 @@ function formDataToJSON(formElement) {
 }
 
 function packageItems(items) {
-  const simplifiedItems = items.map((item) => {
-    console.log(item);
-    return {
-      id: item.Id,
-      price: item.FinalPrice,
-      name: item.Name,
-      quantity: 1,
-    };
-  });
-  return simplifiedItems;
+  return items.map((item) => ({
+    id: item.Id,
+    price: item.FinalPrice,
+    name: item.Name,
+    quantity: 1,
+  }));
 }
 
 const checkoutProcess = {
@@ -41,7 +37,7 @@ const checkoutProcess = {
   init: function (key, outputSelector) {
     this.key = key;
     this.outputSelector = outputSelector;
-    this.list = getLocalStorage(key);
+    this.list = getLocalStorage(key) || [];
     this.calculateItemSummary();
   },
   calculateItemSummary: function () {
@@ -55,9 +51,16 @@ const checkoutProcess = {
     // calculate the total of all the items in the cart
     const amounts = this.list.map((item) => item.FinalPrice);
     this.itemTotal = amounts.reduce((sum, item) => sum + item, 0);
-    summaryElement.innerText = "$" + this.itemTotal;
+    summaryElement.innerText = "$" + this.itemTotal.toFixed(2);
   },
   calculateOrdertotal: function () {
+    if (this.list.length === 0) {
+      this.shipping = 0;
+      this.tax = "0.00";
+      this.orderTotal = "0.00";
+      this.displayOrderTotals();
+      return;
+    }
     this.shipping = 10 + (this.list.length - 1) * 2;
     this.tax = (this.itemTotal * 0.06).toFixed(2);
     this.orderTotal = (
@@ -78,27 +81,39 @@ const checkoutProcess = {
     orderTotal.innerText = "$" + this.orderTotal;
   },
   checkout: async function (form) {
+    if (this.orderTotal === 0 && this.list.length > 0) {
+      this.calculateOrdertotal();
+    }
+
+    if (this.list.length === 0) {
+      removeAllAlerts();
+      alertMessage("Your cart is empty.");
+      return;
+    }
+
     const json = formDataToJSON(form);
     // add totals, and item details
-    json.orderDate = new Date();
+    json.orderDate = new Date().toISOString();
     json.orderTotal = this.orderTotal;
     json.tax = this.tax;
     json.shipping = this.shipping;
     json.items = packageItems(this.list);
-    console.log(json);
     try {
-      const res = await checkout(json);
-      console.log(res);
+      await checkout(json);
       setLocalStorage("so-cart", []);
       location.assign("/checkout/success.html");
     } catch (err) {
       // get rid of any preexisting alerts.
       removeAllAlerts();
-      for (let message in err.message) {
-        alertMessage(err.message[message]);
+      const messages = Object.values(err.message || {});
+      if (messages.length === 0) {
+        alertMessage("Unable to submit order. Please try again.");
+        return;
       }
-
-      console.log(err);
+      messages.forEach((message) => {
+        alertMessage(message, false);
+      });
+      window.scrollTo(0, 0);
     }
   },
 };

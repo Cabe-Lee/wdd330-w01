@@ -1,6 +1,6 @@
-import productList from './productLists.mjs';
-import { getParam } from './utils.mjs';
+import productList from "./productLists.mjs";
+import { getParam, loadHeaderFooter } from "./utils.mjs";
 
-const category = getParam('category') || 'tents';
-
-productList('.product-list', category);
+loadHeaderFooter();
+const category = getParam("category");
+productList(".product-list", category);

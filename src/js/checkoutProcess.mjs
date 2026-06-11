@@ -1,41 +1,16 @@
-import { checkout } from './externalServices.mjs';
-import { alertMessage, getLocalStorage } from './utils.mjs';
-
-function formatCurrency(value) {
-  return `$${value.toFixed(2)}`;
-}
-
-function extractServerMessage(message) {
-  if (typeof message === 'string') {
-    return message;
-  }
-
-  if (Array.isArray(message)) {
-    return message.join(', ');
-  }
-
-  if (message && typeof message === 'object') {
-    if (typeof message.message === 'string') {
-      return message.message;
-    }
-
-    const firstValue = Object.values(message).find(
-      (value) => typeof value === 'string'
-    );
-
-    if (firstValue) {
-      return firstValue;
-    }
-  }
-
-  return 'There was a problem with your order. Please check your information and try again.';
-}
+import {
+  setLocalStorage,
+  getLocalStorage,
+  alertMessage,
+  removeAllAlerts,
+} from "./utils.mjs";
+import { checkout } from "./externalServices.mjs";
 
 function formDataToJSON(formElement) {
-  const formData = new FormData(formElement);
-  const convertedJSON = {};
+  const formData = new FormData(formElement),
+    convertedJSON = {};
 
-  formData.forEach((value, key) => {
+  formData.forEach(function (value, key) {
     convertedJSON[key] = value;
   });
 
@@ -43,121 +18,87 @@ function formDataToJSON(formElement) {
 }
 
 function packageItems(items) {
-  const packagedItems = items.reduce((groupedItems, item) => {
-    const existingItem = groupedItems[item.Id];
-
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      groupedItems[item.Id] = {
-        id: item.Id,
-        name: item.Name,
-        price: Number(item.FinalPrice),
-        quantity: 1,
-      };
-    }
-
-    return groupedItems;
-  }, {});
-
-  return Object.values(packagedItems);
+  const simplifiedItems = items.map((item) => {
+    console.log(item);
+    return {
+      id: item.Id,
+      price: item.FinalPrice,
+      name: item.Name,
+      quantity: 1,
+    };
+  });
+  return simplifiedItems;
 }
 
 const checkoutProcess = {
-  key: '',
-  outputSelector: '',
+  key: "",
+  outputSelector: "",
   list: [],
   itemTotal: 0,
   shipping: 0,
   tax: 0,
   orderTotal: 0,
-  init(key, outputSelector) {
+  init: function (key, outputSelector) {
     this.key = key;
     this.outputSelector = outputSelector;
-    this.list = getLocalStorage(key) || [];
-    this.form = document.querySelector('.checkout-form');
-    this.summaryElement = document.querySelector(outputSelector);
+    this.list = getLocalStorage(key);
     this.calculateItemSummary();
-
-    const zipInput = this.form?.elements.namedItem('zip');
-    if (zipInput) {
-      zipInput.addEventListener('blur', () => {
-        if (zipInput.checkValidity()) {
-          this.calculateOrdertotal();
-        }
-      });
-    }
   },
-  calculateItemSummary() {
-    this.itemTotal = this.list.reduce(
-      (total, item) => total + Number(item.FinalPrice || 0),
-      0
+  calculateItemSummary: function () {
+    const summaryElement = document.querySelector(
+      this.outputSelector + " #cartTotal"
     );
-
-    this.summaryElement.querySelector('#itemCount').textContent = String(
-      this.list.length
+    const itemNumElement = document.querySelector(
+      this.outputSelector + " #num-items"
     );
-    this.summaryElement.querySelector('#subtotal').textContent = formatCurrency(
-      this.itemTotal
-    );
+    itemNumElement.innerText = this.list.length;
+    // calculate the total of all the items in the cart
+    const amounts = this.list.map((item) => item.FinalPrice);
+    this.itemTotal = amounts.reduce((sum, item) => sum + item, 0);
+    summaryElement.innerText = "$" + this.itemTotal;
+  },
+  calculateOrdertotal: function () {
+    this.shipping = 10 + (this.list.length - 1) * 2;
+    this.tax = (this.itemTotal * 0.06).toFixed(2);
+    this.orderTotal = (
+      parseFloat(this.itemTotal) +
+      parseFloat(this.shipping) +
+      parseFloat(this.tax)
+    ).toFixed(2);
     this.displayOrderTotals();
   },
-  calculateOrdertotal() {
-    const itemCount = this.list.length;
-
-    this.shipping = itemCount > 0 ? 10 + Math.max(0, itemCount - 1) * 2 : 0;
-    this.tax = this.itemTotal * 0.06;
-    this.orderTotal = this.itemTotal + this.shipping + this.tax;
-
-    this.displayOrderTotals();
-  },
-  displayOrderTotals() {
-    this.summaryElement.querySelector('#shipping').textContent = formatCurrency(
-      this.shipping
+  displayOrderTotals: function () {
+    const shipping = document.querySelector(this.outputSelector + " #shipping");
+    const tax = document.querySelector(this.outputSelector + " #tax");
+    const orderTotal = document.querySelector(
+      this.outputSelector + " #orderTotal"
     );
-    this.summaryElement.querySelector('#tax').textContent = formatCurrency(this.tax);
-    this.summaryElement.querySelector('#orderTotal').textContent = formatCurrency(
-      this.orderTotal || this.itemTotal
-    );
+    shipping.innerText = "$" + this.shipping;
+    tax.innerText = "$" + this.tax;
+    orderTotal.innerText = "$" + this.orderTotal;
   },
-  async checkout(form) {
-    if (this.list.length === 0) {
-      alertMessage('Your cart is empty. Add an item before checking out.');
-      return;
-    }
-
-    this.calculateOrdertotal();
-
-    const formData = formDataToJSON(form);
-    const order = {
-      orderDate: new Date().toISOString(),
-      fname: formData.fname,
-      lname: formData.lname,
-      street: formData.street,
-      city: formData.city,
-      state: formData.state,
-      zip: formData.zip,
-      cardNumber: formData.cardNumber,
-      expiration: formData.expiration,
-      code: formData.code,
-      items: packageItems(this.list),
-      orderTotal: this.orderTotal.toFixed(2),
-      shipping: this.shipping,
-      tax: this.tax.toFixed(2),
-    };
-
+  checkout: async function (form) {
+    const json = formDataToJSON(form);
+    // add totals, and item details
+    json.orderDate = new Date();
+    json.orderTotal = this.orderTotal;
+    json.tax = this.tax;
+    json.shipping = this.shipping;
+    json.items = packageItems(this.list);
+    console.log(json);
     try {
-      await checkout(order);
-      localStorage.removeItem(this.key);
-      window.location.href = '/checkout/success.html';
+      const res = await checkout(json);
+      console.log(res);
+      setLocalStorage("so-cart", []);
+      location.assign("/checkout/success.html");
     } catch (err) {
-      console.log(err);
-
-      if (err.name === 'servicesError') {
-        alertMessage(extractServerMessage(err.message));
-      } else {
-        alertMessage(err.message || 'Something went wrong. Please try again.');
+      // get rid of any preexisting alerts.
+      removeAllAlerts();
+      for (let message in err.message) {
+        alertMessage(err.message[message]);
       }
+
+      console.log(err);
     }
   },
 };

@@ -28,6 +28,21 @@ export function getParam(param) {
   return urlParams.get(param);
 }
 
+export function getProductImage(product, size = "medium") {
+  const preferredImage =
+    size === "large"
+      ? product?.Images?.PrimaryLarge || product?.Images?.PrimaryMedium
+      : product?.Images?.PrimaryMedium || product?.Images?.PrimaryLarge;
+
+  const imagePath = preferredImage || product?.Image || "";
+
+  if (imagePath.startsWith("../images/")) {
+    return imagePath.replace("../images/", "/images/");
+  }
+
+  return imagePath;
+}
+
 export function renderListWithTemplate(
   templateFn,
   parentElement,

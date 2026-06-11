@@ -1,4 +1,8 @@
-import { getLocalStorage, renderListWithTemplate } from "./utils.mjs";
+import {
+  getLocalStorage,
+  getProductImage,
+  renderListWithTemplate,
+} from "./utils.mjs";
 
 export default function shoppingCart() {
   const cartItems = getLocalStorage("so-cart") || [];
@@ -21,7 +25,7 @@ function cartItemTemplate(item) {
   const newItem = `<li class="cart-card divider">
   <a href="#" class="cart-card__image">
     <img
-      src="${item.Images.PrimaryMedium}"
+      src="${getProductImage(item)}"
       alt="${item.Name}"
     />
   </a>

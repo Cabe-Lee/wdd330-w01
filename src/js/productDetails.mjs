@@ -1,5 +1,10 @@
 import { findProductById } from "./externalServices.mjs";
-import { setLocalStorage, getLocalStorage, alertMessage } from "./utils.mjs";
+import {
+  setLocalStorage,
+  getLocalStorage,
+  alertMessage,
+  getProductImage,
+} from "./utils.mjs";
 
 let product = {};
 
@@ -26,7 +31,7 @@ function renderProductDetails() {
   document.querySelector("#productName").innerText = product.Brand.Name;
   document.querySelector("#productNameWithoutBrand").innerText =
     product.NameWithoutBrand;
-  document.querySelector("#productImage").src = product.Images.PrimaryLarge;
+  document.querySelector("#productImage").src = getProductImage(product, "large");
   document.querySelector("#productImage").alt = product.Name;
   document.querySelector("#productFinalPrice").innerText = product.FinalPrice;
   document.querySelector("#productColorName").innerText =
